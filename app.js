@@ -22,6 +22,7 @@
   const soundToggle = $('#soundToggle');
 
   const COLORS = {
+<<<<<<< HEAD
     bg: '#030a25',
     grid: 'rgba(101,181,255,.075)',
     cream: '#f0ecff',
@@ -29,11 +30,21 @@
     accent: '#9b63ff',
     green: '#65b5ff',
     dark: '#07102f'
+=======
+    bg: '#101510',
+    grid: 'rgba(241,226,200,.055)',
+    cream: '#f1e2c8',
+    muted: '#786d5a',
+    accent: '#d28b52',
+    green: '#8fb996',
+    dark: '#1b2019'
+>>>>>>> origin/main
   };
 
   const GAME_INFO = {
     snake: {
       title: 'Coffee Snake',
+<<<<<<< HEAD
       intro: 'Збирай зерна. На телефоні керуй свайпами.',
       hint: 'Свайп ← ↑ ↓ → · або кнопки / WASD'
     },
@@ -51,6 +62,25 @@
       title: 'Espresso Pong',
       intro: 'Веди платформу пальцем і не дай зерну впасти.',
       hint: 'Веди пальцем ← → · або кнопки / A / D'
+=======
+      intro: 'Збирай зерна та не торкайся країв або власного хвоста.',
+      hint: 'Клавіатура: стрілки або WASD'
+    },
+    catcher: {
+      title: 'Bean Catcher',
+      intro: 'Рухай чашку й лови зерна. Після трьох промахів гра завершується.',
+      hint: 'Клавіатура: ← → або A / D'
+    },
+    memory: {
+      title: 'Coffee Memory',
+      intro: 'Відкривай картки по дві та знайди всі однакові пари.',
+      hint: 'Натискай на картки'
+    },
+    pong: {
+      title: 'Espresso Pong',
+      intro: 'Відбивай зерно платформою. Кожен удар додає очко та трохи швидкості.',
+      hint: 'Клавіатура: ← → або A / D'
+>>>>>>> origin/main
     }
   };
 
@@ -99,11 +129,21 @@
   soundToggle.addEventListener('click', () => {
     soundOn = !soundOn;
     soundToggle.setAttribute('aria-pressed', String(soundOn));
+<<<<<<< HEAD
     soundToggle.setAttribute('aria-label', soundOn ? 'Вимкнути звук' : 'Увімкнути звук');
     soundToggle.textContent = `♪ ${soundOn ? 'ON' : 'OFF'}`;
     if (soundOn) beep(520, .06, .035);
   });
 
+=======
+    soundToggle.textContent = `SOUND: ${soundOn ? 'ON' : 'OFF'}`;
+    if (soundOn) beep(520, .06, .035);
+  });
+
+  $('#year').textContent = new Date().getFullYear();
+  $('#scrollToGames').addEventListener('click', () => $('#games').scrollIntoView({ behavior: 'smooth' }));
+
+>>>>>>> origin/main
   $$('[data-open-game]').forEach(btn => {
     btn.addEventListener('click', () => openGame(btn.dataset.openGame));
   });
@@ -111,7 +151,11 @@
   function clearGameRuntime() {
     running = false;
     if (rafId) cancelAnimationFrame(rafId);
+<<<<<<< HEAD
     if (intervalId) clearTimeout(intervalId);
+=======
+    if (intervalId) clearInterval(intervalId);
+>>>>>>> origin/main
     rafId = null;
     intervalId = null;
     memoryBoard.innerHTML = '';
@@ -252,7 +296,11 @@
     ctx.beginPath();
     ctx.ellipse(0, 0, r * 1.25, r, 0, 0, Math.PI * 2);
     ctx.fill();
+<<<<<<< HEAD
     ctx.strokeStyle = '#65b5ff';
+=======
+    ctx.strokeStyle = '#6f4328';
+>>>>>>> origin/main
     ctx.lineWidth = Math.max(1, r * .16);
     ctx.beginPath();
     ctx.moveTo(-r * .12, -r * .75);
@@ -272,7 +320,11 @@
     ctx.beginPath();
     ctx.arc(cx + width*.53, cy - h*.02, width*.17, -Math.PI/2, Math.PI/2);
     ctx.stroke();
+<<<<<<< HEAD
     ctx.fillStyle = '#9b63ff';
+=======
+    ctx.fillStyle = '#4b2f22';
+>>>>>>> origin/main
     ctx.beginPath();
     ctx.ellipse(cx, cy - h*.34, width*.34, h*.11, 0, 0, Math.PI*2);
     ctx.fill();
@@ -446,6 +498,7 @@
 
   function catcherMove(v) { if (catcherState) catcherState.move = v; }
 
+<<<<<<< HEAD
   // Touch controls: Snake uses swipe; Catcher and Pong follow the finger.
   let gestureStart = null;
 
@@ -499,6 +552,29 @@
   // -------------------- MEMORY --------------------
   let memoryState = null;
   const memorySymbols = ['◆','●','✦','■','♬','★','△','♥'];
+=======
+  // Swipe / touch movement on catcher and pong canvases
+  let dragStartX = null;
+  canvas.addEventListener('pointerdown', (e) => {
+    if (activeGame === 'catcher' || activeGame === 'pong') {
+      dragStartX = e.clientX;
+      canvas.setPointerCapture?.(e.pointerId);
+    }
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (dragStartX == null) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    if (activeGame === 'catcher' && catcherState) catcherState.cupX = Math.max(.13, Math.min(.87, x));
+    if (activeGame === 'pong' && pongState) pongState.paddleX = Math.max(.12, Math.min(.88, x));
+  });
+  canvas.addEventListener('pointerup', () => dragStartX = null);
+  canvas.addEventListener('pointercancel', () => dragStartX = null);
+
+  // -------------------- MEMORY --------------------
+  let memoryState = null;
+  const memorySymbols = ['☕','◆','◉','✦','▣','♬','★','△'];
+>>>>>>> origin/main
   function startMemory() {
     clearGameRuntime();
     canvas.hidden = true;
