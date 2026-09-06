@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1f1a17" />
+  <meta name="description" content="Невелика ретро-аркада кав'ярні: Coffee Snake, Bean Catcher, Memory та Espresso Pong." />
+  <title>Retro Coffee Arcade</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+
+  <header class="site-header shell">
+    <a class="brand" href="#top" aria-label="На головну">
+      <span class="brand-mark" aria-hidden="true">☕</span>
+      <span>
+        <strong>RETRO COFFEE</strong>
+        <small>ARCADE</small>
+      </span>
+    </a>
+
+    <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" title="Увімкнути або вимкнути звуки">
+      SOUND: OFF
+    </button>
+  </header>
+
+  <main id="top">
+    <section class="hero shell">
+      <div class="hero-copy">
+        <p class="eyebrow">A tiny break between coffee sips</p>
+        <h1>Кава. Пікселі.<br />Ще одна спроба.</h1>
+        <p class="hero-text">
+          Чотири короткі ретро-ігри без реєстрації, реклами й зайвих екранів.
+          Обери гру та побий власний рекорд.
+        </p>
+        <button class="primary-btn" id="scrollToGames" type="button">SELECT GAME</button>
+      </div>
+
+      <div class="hero-terminal" aria-label="Декоративний ретро-екран">
+        <div class="terminal-bar">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="terminal-screen">
+          <p>RETRO COFFEE SYSTEM</p>
+          <p>STATUS: <span>READY</span></p>
+          <p>GAMES: 04</p>
+          <div class="coffee-pixel" aria-hidden="true">
+            <span>··████··</span>
+            <span>·██████·</span>
+            <span>████████</span>
+            <span>██████████</span>
+            <span>·████████·</span>
+            <span>··██████··</span>
+          </div>
+          <p class="blink">PRESS START</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="games-section shell" id="games">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ARCADE MENU</p>
+          <h2>Обери гру</h2>
+        </div>
+        <p>Усі рекорди зберігаються тільки на цьому пристрої.</p>
+      </div>
+
+      <div class="game-grid">
+        <article class="game-card" data-game="snake">
+          <div class="game-icon" aria-hidden="true">▰</div>
+          <div>
+            <p class="game-number">01</p>
+            <h3>Coffee Snake</h3>
+            <p>Збирай зерна, не врізайся у стіни та власний хвіст.</p>
+          </div>
+          <div class="game-meta">
+            <span>BEST <b id="best-snake">0</b></span>
+            <button type="button" data-open-game="snake">PLAY</button>
+          </div>
+        </article>
+
+        <article class="game-card" data-game="catcher">
+          <div class="game-icon" aria-hidden="true">⌄</div>
+          <div>
+            <p class="game-number">02</p>
+            <h3>Bean Catcher</h3>
+            <p>Лови кавові зерна чашкою. Три промахи — і зміна закінчена.</p>
+          </div>
+          <div class="game-meta">
+            <span>BEST <b id="best-catcher">0</b></span>
+            <button type="button" data-open-game="catcher">PLAY</button>
+          </div>
+        </article>
+
+        <article class="game-card" data-game="memory">
+          <div class="game-icon" aria-hidden="true">▦</div>
+          <div>
+            <p class="game-number">03</p>
+            <h3>Coffee Memory</h3>
+            <p>Знайди всі пари за якомога меншу кількість ходів.</p>
+          </div>
+          <div class="game-meta">
+            <span>BEST <b id="best-memory">—</b></span>
+            <button type="button" data-open-game="memory">PLAY</button>
+          </div>
+        </article>
+
+        <article class="game-card" data-game="pong">
+          <div class="game-icon" aria-hidden="true">●</div>
+          <div>
+            <p class="game-number">04</p>
+            <h3>Espresso Pong</h3>
+            <p>Відбивай зерно. Чим довше тримаєш гру, тим швидший темп.</p>
+          </div>
+          <div class="game-meta">
+            <span>BEST <b id="best-pong">0</b></span>
+            <button type="button" data-open-game="pong">PLAY</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="about shell">
+      <div class="about-box">
+        <p class="eyebrow">NO DOWNLOADS</p>
+        <h2>Відсканував. Натиснув. Граєш.</h2>
+        <p>
+          Цей сайт зроблений як статична сторінка: його можна безкоштовно хостити на GitHub Pages,
+          а QR-код залишати тим самим навіть після оновлення ігор.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer shell">
+    <span>© <span id="year"></span> Retro Coffee</span>
+    <span>MADE FOR SHORT COFFEE BREAKS</span>
+  </footer>
+
+  <dialog class="game-dialog" id="gameDialog">
+    <div class="game-shell">
+      <div class="game-toolbar">
+        <div>
+          <span class="toolbar-label">NOW PLAYING</span>
+          <strong id="dialogTitle">Coffee Snake</strong>
+        </div>
+        <button class="close-btn" id="closeGame" type="button" aria-label="Закрити гру">×</button>
+      </div>
+
+      <div class="scorebar">
+        <span>SCORE <b id="currentScore">0</b></span>
+        <span>BEST <b id="currentBest">0</b></span>
+      </div>
+
+      <div class="game-stage" id="gameStage">
+        <canvas id="gameCanvas" width="360" height="360" aria-label="Ігрове поле"></canvas>
+        <div id="memoryBoard" class="memory-board" hidden></div>
+        <div class="game-overlay" id="gameOverlay">
+          <p class="overlay-kicker" id="overlayKicker">READY?</p>
+          <h2 id="overlayTitle">Coffee Snake</h2>
+          <p id="overlayText">Збирай зерна та не торкайся країв.</p>
+          <button id="startGame" type="button">START</button>
+        </div>
+      </div>
+
+      <div class="controls" id="directionControls" hidden>
+        <button type="button" data-dir="up" aria-label="Вгору">▲</button>
+        <div>
+          <button type="button" data-dir="left" aria-label="Ліворуч">◀</button>
+          <button type="button" data-dir="down" aria-label="Вниз">▼</button>
+          <button type="button" data-dir="right" aria-label="Праворуч">▶</button>
+        </div>
+      </div>
+
+      <div class="pong-controls" id="pongControls" hidden>
+        <button type="button" data-pong="left">◀ LEFT</button>
+        <button type="button" data-pong="right">RIGHT ▶</button>
+      </div>
+
+      <p class="keyboard-hint" id="keyboardHint">Клавіатура: стрілки або WASD</p>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
