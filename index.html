@@ -9,10 +9,96 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- Оригінальний піксельний маскот: вбудований SVG, зовнішніх картинок немає. -->
+  <svg class="sprite-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="mascot-idle" viewBox="0 0 64 64">
+        <g shape-rendering="crispEdges">
+          <rect x="8" y="24" width="7" height="17" fill="#8f5cff"/>
+          <rect x="12" y="19" width="8" height="8" fill="#6db9ff"/>
+          <rect x="49" y="24" width="7" height="17" fill="#8f5cff"/>
+          <rect x="44" y="19" width="8" height="8" fill="#6db9ff"/>
+          <rect x="17" y="17" width="30" height="34" fill="#f3efff"/>
+          <rect x="13" y="27" width="38" height="16" fill="#f3efff"/>
+          <rect x="20" y="49" width="9" height="5" fill="#b78aff"/>
+          <rect x="36" y="49" width="9" height="5" fill="#b78aff"/>
+          <rect class="mascot-eye" x="23" y="29" width="5" height="6" fill="#06102f"/>
+          <rect class="mascot-eye" x="37" y="29" width="5" height="6" fill="#06102f"/>
+          <rect x="30" y="37" width="5" height="3" fill="#8f5cff"/>
+          <rect x="27" y="40" width="11" height="3" fill="#06102f"/>
+          <rect x="30" y="43" width="5" height="4" fill="#8f5cff"/>
+          <rect x="17" y="37" width="4" height="4" fill="#6db9ff"/>
+          <rect x="44" y="37" width="4" height="4" fill="#6db9ff"/>
+          <rect x="42" y="42" width="12" height="8" fill="#6db9ff"/>
+          <rect x="45" y="40" width="9" height="3" fill="#6db9ff"/>
+          <rect x="54" y="44" width="4" height="5" fill="#6db9ff"/>
+          <rect x="45" y="42" width="7" height="2" fill="#06102f"/>
+        </g>
+      </symbol>
+
+      <symbol id="mascot-happy" viewBox="0 0 64 64">
+        <g shape-rendering="crispEdges">
+          <rect x="8" y="23" width="7" height="16" fill="#8f5cff"/>
+          <rect x="11" y="18" width="9" height="8" fill="#6db9ff"/>
+          <rect x="49" y="23" width="7" height="16" fill="#8f5cff"/>
+          <rect x="44" y="18" width="9" height="8" fill="#6db9ff"/>
+          <rect x="17" y="16" width="30" height="35" fill="#f3efff"/>
+          <rect x="13" y="26" width="38" height="17" fill="#f3efff"/>
+          <rect x="20" y="49" width="9" height="5" fill="#b78aff"/>
+          <rect x="36" y="49" width="9" height="5" fill="#b78aff"/>
+          <rect x="22" y="31" width="3" height="3" fill="#06102f"/>
+          <rect x="25" y="34" width="4" height="2" fill="#06102f"/>
+          <rect x="39" y="31" width="3" height="3" fill="#06102f"/>
+          <rect x="35" y="34" width="4" height="2" fill="#06102f"/>
+          <rect x="27" y="39" width="11" height="3" fill="#06102f"/>
+          <rect x="30" y="42" width="5" height="5" fill="#8f5cff"/>
+          <rect x="17" y="37" width="4" height="4" fill="#6db9ff"/>
+          <rect x="44" y="37" width="4" height="4" fill="#6db9ff"/>
+          <rect x="42" y="42" width="12" height="8" fill="#6db9ff"/>
+          <rect x="45" y="40" width="9" height="3" fill="#6db9ff"/>
+          <rect x="54" y="44" width="4" height="5" fill="#6db9ff"/>
+          <rect x="45" y="42" width="7" height="2" fill="#06102f"/>
+          <rect x="51" y="9" width="5" height="5" fill="#9b63ff"/>
+          <rect x="47" y="13" width="13" height="5" fill="#9b63ff"/>
+          <rect x="51" y="18" width="5" height="4" fill="#9b63ff"/>
+        </g>
+      </symbol>
+
+      <symbol id="mascot-sad" viewBox="0 0 64 64">
+        <g shape-rendering="crispEdges">
+          <rect x="8" y="27" width="7" height="16" fill="#8f5cff"/>
+          <rect x="11" y="22" width="9" height="8" fill="#6db9ff"/>
+          <rect x="49" y="27" width="7" height="16" fill="#8f5cff"/>
+          <rect x="44" y="22" width="9" height="8" fill="#6db9ff"/>
+          <rect x="17" y="18" width="30" height="33" fill="#f3efff"/>
+          <rect x="13" y="28" width="38" height="15" fill="#f3efff"/>
+          <rect x="20" y="49" width="9" height="5" fill="#b78aff"/>
+          <rect x="36" y="49" width="9" height="5" fill="#b78aff"/>
+          <rect x="23" y="31" width="5" height="6" fill="#06102f"/>
+          <rect x="37" y="31" width="5" height="6" fill="#06102f"/>
+          <rect x="28" y="42" width="9" height="3" fill="#06102f"/>
+          <rect x="30" y="39" width="5" height="3" fill="#8f5cff"/>
+          <rect x="18" y="38" width="4" height="4" fill="#6db9ff"/>
+          <rect x="43" y="38" width="4" height="4" fill="#6db9ff"/>
+          <rect x="42" y="43" width="12" height="8" fill="#6db9ff"/>
+          <rect x="45" y="41" width="9" height="3" fill="#6db9ff"/>
+          <rect x="54" y="45" width="4" height="5" fill="#6db9ff"/>
+          <rect x="45" y="43" width="7" height="2" fill="#06102f"/>
+        </g>
+      </symbol>
+    </defs>
+  </svg>
+
   <main class="arcade-page">
     <section class="pixel-frame" aria-label="PORO retro games">
       <header class="brand-block">
-        <div class="brand-chip">
+        <button class="mascot-wrap" id="homeMascot" type="button" aria-label="Привітатися з маскотом">
+          <span class="mascot-bubble" id="mascotBubble">LET'S PLAY!</span>
+          <svg class="mascot mascot-main" viewBox="0 0 64 64" aria-hidden="true">
+            <use id="homeMascotUse" href="#mascot-idle"></use>
+          </svg>
+        </button>
+        <div class="brand-chip" aria-label="PORO">
           <span class="brand-word">PORO</span>
         </div>
       </header>
@@ -20,7 +106,7 @@
       <div class="game-grid" id="games">
         <button class="game-card" type="button" data-open-game="snake" aria-label="Грати Coffee Snake">
           <span class="game-art" aria-hidden="true">
-            <svg viewBox="0 0 64 64" role="img">
+            <svg viewBox="0 0 64 64">
               <path class="blue" d="M10 35h8v-8h8v8h8v8h8v8H26v-8H10z"/>
               <rect class="violet" x="46" y="13" width="9" height="9"/>
               <rect class="violet" x="50" y="9" width="5" height="5"/>
@@ -32,7 +118,7 @@
 
         <button class="game-card" type="button" data-open-game="catcher" aria-label="Грати Bean Catcher">
           <span class="game-art" aria-hidden="true">
-            <svg viewBox="0 0 64 64" role="img">
+            <svg viewBox="0 0 64 64">
               <path class="blue" d="M14 38h30v12H18l-4-12zm30 3h8v7h-8z"/>
               <rect class="violet" x="22" y="10" width="7" height="10"/>
               <rect class="violet" x="37" y="17" width="7" height="10"/>
@@ -45,7 +131,7 @@
 
         <button class="game-card" type="button" data-open-game="memory" aria-label="Грати Coffee Memory">
           <span class="game-art" aria-hidden="true">
-            <svg viewBox="0 0 64 64" role="img">
+            <svg viewBox="0 0 64 64">
               <rect class="blue" x="10" y="10" width="18" height="18"/>
               <rect class="violet" x="36" y="10" width="18" height="18"/>
               <rect class="violet" x="10" y="36" width="18" height="18"/>
@@ -60,7 +146,7 @@
 
         <button class="game-card" type="button" data-open-game="pong" aria-label="Грати Espresso Pong">
           <span class="game-art" aria-hidden="true">
-            <svg viewBox="0 0 64 64" role="img">
+            <svg viewBox="0 0 64 64">
               <rect class="blue" x="8" y="13" width="7" height="38"/>
               <rect class="violet" x="49" y="13" width="7" height="38"/>
               <rect class="blue" x="29" y="27" width="7" height="7"/>
@@ -71,10 +157,38 @@
           <span class="game-title">PONG</span>
           <span class="game-best">BEST <b id="best-pong">0</b></span>
         </button>
-      </div>
 
-      <div class="mini-decor" aria-hidden="true">
-        <span></span><span></span><i></i><span></span><span></span>
+        <button class="game-card" type="button" data-open-game="stack" aria-label="Грати Cup Stack">
+          <span class="game-art" aria-hidden="true">
+            <svg viewBox="0 0 64 64">
+              <path class="blue" d="M12 43h31v9H15z"/>
+              <path class="violet" d="M17 31h30v9H20z"/>
+              <path class="blue" d="M12 19h31v9H15z"/>
+              <rect class="violet" x="43" y="21" width="7" height="5"/>
+              <rect class="blue" x="47" y="33" width="7" height="5"/>
+              <rect class="violet" x="43" y="45" width="7" height="5"/>
+            </svg>
+          </span>
+          <span class="game-title">CUP STACK</span>
+          <span class="game-best">BEST <b id="best-stack">0</b></span>
+        </button>
+
+        <button class="game-card" type="button" data-open-game="breakout" aria-label="Грати Coffee Breakout">
+          <span class="game-art" aria-hidden="true">
+            <svg viewBox="0 0 64 64">
+              <rect class="violet" x="8" y="10" width="13" height="8"/>
+              <rect class="blue" x="25" y="10" width="13" height="8"/>
+              <rect class="violet" x="42" y="10" width="13" height="8"/>
+              <rect class="blue" x="8" y="22" width="13" height="8"/>
+              <rect class="violet" x="25" y="22" width="13" height="8"/>
+              <rect class="blue" x="42" y="22" width="13" height="8"/>
+              <rect class="violet" x="29" y="37" width="7" height="7"/>
+              <rect class="blue" x="18" y="50" width="28" height="5"/>
+            </svg>
+          </span>
+          <span class="game-title">BREAKOUT</span>
+          <span class="game-best">BEST <b id="best-breakout">0</b></span>
+        </button>
       </div>
     </section>
   </main>
@@ -82,9 +196,11 @@
   <dialog class="game-dialog" id="gameDialog">
     <div class="game-shell">
       <div class="game-toolbar">
+        <button class="game-home-btn" id="gameHomeBtn" type="button" aria-label="Повернутися до вибору ігор">
+          <span class="home-arrow" aria-hidden="true">←</span>
+          <strong id="dialogTitle">Coffee Snake</strong>
+        </button>
         <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" aria-label="Увімкнути звук">♪ OFF</button>
-        <strong id="dialogTitle">Coffee Snake</strong>
-        <button class="close-btn" id="closeGame" type="button" aria-label="Закрити гру">×</button>
       </div>
 
       <div class="scorebar">
@@ -96,6 +212,9 @@
         <canvas id="gameCanvas" width="420" height="420" aria-label="Ігрове поле"></canvas>
         <div id="memoryBoard" class="memory-board" hidden></div>
         <div class="game-overlay" id="gameOverlay">
+          <svg class="mascot mascot-overlay" viewBox="0 0 64 64" aria-hidden="true">
+            <use id="overlayMascotUse" href="#mascot-idle"></use>
+          </svg>
           <p class="overlay-kicker" id="overlayKicker">READY?</p>
           <h2 id="overlayTitle">Coffee Snake</h2>
           <p id="overlayText">Swipe to move.</p>

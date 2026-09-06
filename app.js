@@ -12,14 +12,19 @@
   const overlayKicker = $('#overlayKicker');
   const overlayTitle = $('#overlayTitle');
   const overlayText = $('#overlayText');
+  const overlayMascotUse = $('#overlayMascotUse');
   const startBtn = $('#startGame');
   const currentScore = $('#currentScore');
   const currentBest = $('#currentBest');
   const dialogTitle = $('#dialogTitle');
+  const gameHomeBtn = $('#gameHomeBtn');
   const directionControls = $('#directionControls');
   const pongControls = $('#pongControls');
   const keyboardHint = $('#keyboardHint');
   const soundToggle = $('#soundToggle');
+  const homeMascot = $('#homeMascot');
+  const homeMascotUse = $('#homeMascotUse');
+  const mascotBubble = $('#mascotBubble');
 
   const COLORS = {
     bg: '#030a25',
@@ -27,8 +32,9 @@
  cream: '#f0ecff',
  muted: '#7088b9',
  accent: '#9b63ff',
- green: '#65b5ff',
- dark: '#07102f'
+ blue: '#65b5ff',
+ dark: '#07102f',
+ panel: '#0b1640'
   };
 
   const GAME_INFO = {
@@ -51,9 +57,20 @@
       title: 'Espresso Pong',
       intro: 'Веди платформу пальцем і не дай зерну впасти.',
       hint: 'Веди пальцем ← → · або кнопки / A / D'
+    },
+    stack: {
+      title: 'Cup Stack',
+      intro: 'Тапай у потрібний момент і складай чашки якомога вище.',
+      hint: 'Тап по полю · або SPACE / ENTER'
+    },
+    breakout: {
+      title: 'Coffee Breakout',
+      intro: 'Рухай платформу пальцем і розбий усі піксельні блоки.',
+      hint: 'Веди пальцем ← → · або кнопки / A / D'
     }
   };
 
+  const SCORE_GAMES = ['snake', 'catcher', 'pong', 'stack', 'breakout'];
   let activeGame = null;
   let running = false;
   let rafId = null;
@@ -61,7 +78,7 @@
   let soundOn = false;
   let audioCtx = null;
 
-  const storageKey = (game) => `retroCoffeeBest:${game}`;
+  const storageKey = (game) => `poroRetroBest:${game}`;
   const getBest = (game) => localStorage.getItem(storageKey(game));
   const setBest = (game, value) => localStorage.setItem(storageKey(game), String(value));
 
@@ -72,11 +89,12 @@
   }
 
   function refreshBestLabels() {
-    ['snake', 'catcher', 'pong'].forEach(game => {
-      $(`#best-${game}`).textContent = bestValue(game) || 0;
+    SCORE_GAMES.forEach(game => {
+      const el = $(`#best-${game}`);
+      if (el) el.textContent = bestValue(game) || 0;
     });
-    const mem = bestValue('memory');
-    $('#best-memory').textContent = mem ? `${mem} ход.` : '—';
+      const mem = bestValue('memory');
+      $('#best-memory').textContent = mem ? `${mem} ход.` : '—';
   }
 
   function beep(freq = 440, duration = .045, volume = .025) {
@@ -104,6 +122,38 @@
     if (soundOn) beep(520, .06, .035);
   });
 
+    // -------------------- MASCOT --------------------
+    const mascotPhrases = ['LET\'S PLAY!', 'COFFEE TIME!', 'HI!', 'ONE MORE?', 'GOOD LUCK!'];
+    let mascotTimer = null;
+
+    homeMascot.addEventListener('click', () => {
+      clearTimeout(mascotTimer);
+      mascotBubble.textContent = mascotPhrases[Math.floor(Math.random() * mascotPhrases.length)];
+      homeMascot.classList.remove('is-boop');
+      void homeMascot.offsetWidth;
+      homeMascot.classList.add('is-boop');
+      homeMascotUse.setAttribute('href', '#mascot-happy');
+      beep(720, .045, .02);
+      mascotTimer = setTimeout(() => {
+        homeMascot.classList.remove('is-boop');
+        homeMascotUse.setAttribute('href', '#mascot-idle');
+      }, 900);
+    });
+
+    function setOverlayMood(mood = 'idle') {
+      overlay.classList.remove('is-happy', 'is-sad');
+      if (mood === 'happy') {
+        overlay.classList.add('is-happy');
+        overlayMascotUse.setAttribute('href', '#mascot-happy');
+      } else if (mood === 'sad') {
+        overlay.classList.add('is-sad');
+        overlayMascotUse.setAttribute('href', '#mascot-sad');
+      } else {
+        overlayMascotUse.setAttribute('href', '#mascot-idle');
+      }
+    }
+
+    // -------------------- OPEN / CLOSE --------------------
     $$('[data-open-game]').forEach(btn => {
       btn.addEventListener('click', () => openGame(btn.dataset.openGame));
     });
@@ -119,6 +169,7 @@
       canvas.hidden = false;
       directionControls.hidden = true;
       pongControls.hidden = true;
+      gestureStart = null;
     }
 
     function openGame(game) {
@@ -130,13 +181,14 @@
       overlayTitle.textContent = info.title;
       overlayText.textContent = info.intro;
       startBtn.textContent = 'START';
+      setOverlayMood('idle');
       overlay.hidden = false;
       currentScore.textContent = game === 'memory' ? '0 MOVES' : '0';
       const best = bestValue(game);
       currentBest.textContent = game === 'memory' ? (best ? `${best} MOVES` : '—') : (best || 0);
       keyboardHint.textContent = info.hint;
       if (game === 'snake') directionControls.hidden = false;
-      if (game === 'pong') pongControls.hidden = false;
+      if (game === 'pong' || game === 'breakout') pongControls.hidden = false;
       if (!dialog.open) dialog.showModal();
       drawIdleFrame(game);
     }
@@ -147,7 +199,9 @@
       activeGame = null;
     }
 
-    $('#closeGame').addEventListener('click', closeGame);
+    // Назва гри + стрілка повертають на головний екран.
+    gameHomeBtn.addEventListener('click', closeGame);
+
     dialog.addEventListener('cancel', (e) => {
       e.preventDefault();
       closeGame();
@@ -164,14 +218,17 @@
         if (activeGame === 'catcher') startCatcher();
         if (activeGame === 'memory') startMemory();
         if (activeGame === 'pong') startPong();
+        if (activeGame === 'stack') startStack();
+        if (activeGame === 'breakout') startBreakout();
       });
 
-        function showGameOver({ kicker = 'GAME OVER', title = 'Ще раз?', text = '', button = 'RETRY' } = {}) {
+        function showGameOver({ kicker = 'GAME OVER', title = 'Ще раз?', text = '', button = 'RETRY', mood = 'sad' } = {}) {
           running = false;
           overlayKicker.textContent = kicker;
           overlayTitle.textContent = title;
           overlayText.textContent = text;
           startBtn.textContent = button;
+          setOverlayMood(mood);
           overlay.hidden = false;
         }
 
@@ -188,6 +245,7 @@
           return improved;
         }
 
+        // -------------------- DRAW HELPERS --------------------
         function fitCanvas() {
           const dpr = Math.min(window.devicePixelRatio || 1, 2);
           const rect = canvas.getBoundingClientRect();
@@ -220,12 +278,11 @@
           ctx.textBaseline = 'middle';
           ctx.fillStyle = COLORS.muted;
           ctx.font = `${Math.round(size * .035)}px monospace`;
-          ctx.fillText(game === 'memory' ? 'FLIP THE CARDS' : 'INSERT COIN', size / 2, size * .78);
+          ctx.fillText(game === 'memory' ? 'FLIP THE CARDS' : 'INSERT COIN', size / 2, size * .80);
 
           if (game === 'snake') {
             const u = size / 18;
-            ctx.fillStyle = COLORS.green;
-            [[6,9],[7,9],[8,9],[9,9],[9,8]].forEach(([x,y], idx) => roundedRect(x*u+2, y*u+2, u-4, u-4, u*.18, idx === 0 ? COLORS.cream : COLORS.green));
+            [[6,9],[7,9],[8,9],[9,9],[9,8]].forEach(([x,y], idx) => roundedRect(x*u+2, y*u+2, u-4, u-4, u*.18, idx === 0 ? COLORS.cream : COLORS.blue));
             drawBean(12.5*u, 8.5*u, u*.32);
           } else if (game === 'catcher') {
             drawCup(size*.5, size*.65, size*.19);
@@ -234,12 +291,25 @@
           } else if (game === 'pong') {
             drawBean(size*.52, size*.43, size*.04);
             roundedRect(size*.36, size*.69, size*.28, size*.035, 8, COLORS.cream);
+          } else if (game === 'stack') {
+            drawCupLayer(size*.5, size*.68, size*.42, size*.085, 0);
+            drawCupLayer(size*.48, size*.58, size*.35, size*.085, 1);
+            drawCupLayer(size*.53, size*.48, size*.28, size*.085, 2);
+          } else if (game === 'breakout') {
+            for (let r = 0; r < 3; r++) {
+              for (let c = 0; c < 5; c++) {
+                roundedRect(size*(.12+c*.16), size*(.18+r*.075), size*.13, size*.045, 2, (r+c)%2 ? COLORS.accent : COLORS.blue);
+              }
+            }
+            drawBean(size*.5, size*.54, size*.032);
+            roundedRect(size*.36, size*.69, size*.28, size*.035, 8, COLORS.cream);
           }
         }
 
         function roundedRect(x, y, w, h, r, fill) {
           ctx.beginPath();
-          ctx.roundRect(x, y, w, h, r);
+          if (ctx.roundRect) ctx.roundRect(x, y, w, h, r);
+          else ctx.rect(x, y, w, h);
           ctx.fillStyle = fill;
           ctx.fill();
         }
@@ -252,7 +322,7 @@
           ctx.beginPath();
           ctx.ellipse(0, 0, r * 1.25, r, 0, 0, Math.PI * 2);
           ctx.fill();
-          ctx.strokeStyle = '#65b5ff';
+          ctx.strokeStyle = COLORS.blue;
           ctx.lineWidth = Math.max(1, r * .16);
           ctx.beginPath();
           ctx.moveTo(-r * .12, -r * .75);
@@ -263,19 +333,27 @@
 
         function drawCup(cx, cy, width) {
           const h = width * .52;
-          ctx.fillStyle = COLORS.cream;
-          ctx.beginPath();
-          ctx.roundRect(cx - width/2, cy - h/2, width, h, width*.08);
-          ctx.fill();
+          roundedRect(cx - width/2, cy - h/2, width, h, width*.08, COLORS.cream);
           ctx.strokeStyle = COLORS.cream;
           ctx.lineWidth = Math.max(2, width*.06);
           ctx.beginPath();
           ctx.arc(cx + width*.53, cy - h*.02, width*.17, -Math.PI/2, Math.PI/2);
           ctx.stroke();
-          ctx.fillStyle = '#9b63ff';
+          ctx.fillStyle = COLORS.accent;
           ctx.beginPath();
           ctx.ellipse(cx, cy - h*.34, width*.34, h*.11, 0, 0, Math.PI*2);
           ctx.fill();
+        }
+
+        function drawCupLayer(cx, cy, width, height, parity = 0) {
+          const fill = parity % 2 ? COLORS.accent : COLORS.blue;
+          roundedRect(cx - width/2, cy - height/2, width, height, Math.max(2, height*.12), fill);
+          ctx.strokeStyle = fill;
+          ctx.lineWidth = Math.max(2, height*.18);
+          ctx.beginPath();
+          ctx.arc(cx + width*.52, cy, height*.40, -Math.PI/2, Math.PI/2);
+          ctx.stroke();
+          roundedRect(cx - width*.28, cy - height*.25, width*.42, height*.20, 1, COLORS.bg);
         }
 
         // -------------------- SNAKE --------------------
@@ -285,7 +363,6 @@
           directionControls.hidden = false;
           canvas.hidden = false;
           running = true;
-
           snakeState = {
             cells: 18,
             snake: [{x:8,y:9},{x:7,y:9},{x:6,y:9}],
@@ -319,7 +396,8 @@
             const improved = updateBest('snake', s.score);
             showGameOver({
               title: improved ? 'NEW HIGH SCORE' : 'Game over',
-              text: `Результат: ${s.score}. ${improved ? 'Новий рекорд збережено.' : 'Ще одна спроба?'}`
+              text: `Результат: ${s.score}. ${improved ? 'Новий рекорд збережено.' : 'Ще одна спроба?'}`,
+              mood: improved ? 'happy' : 'sad'
             });
             return;
           }
@@ -352,7 +430,7 @@
           drawGrid(size, s.cells);
           const u = size / s.cells;
           s.snake.forEach((p, i) => {
-            roundedRect(p.x*u + u*.12, p.y*u + u*.12, u*.76, u*.76, u*.18, i === 0 ? COLORS.cream : COLORS.green);
+            roundedRect(p.x*u + u*.12, p.y*u + u*.12, u*.76, u*.76, u*.18, i === 0 ? COLORS.cream : COLORS.blue);
           });
           drawBean((s.food.x+.5)*u, (s.food.y+.5)*u, u*.27);
         }
@@ -422,7 +500,8 @@
                 const improved = updateBest('catcher', s.score);
                 showGameOver({
                   title: improved ? 'NEW HIGH SCORE' : 'Shift over',
-                  text: `Результат: ${s.score}. Пропущено 3 зерна.`
+                  text: `Результат: ${s.score}. Пропущено 3 зерна.`,
+                  mood: improved ? 'happy' : 'sad'
                 });
                 return;
               }
@@ -446,7 +525,360 @@
 
         function catcherMove(v) { if (catcherState) catcherState.move = v; }
 
-        // Touch controls: Snake uses swipe; Catcher and Pong follow the finger.
+        // -------------------- MEMORY --------------------
+        let memoryState = null;
+        const memorySymbols = ['◆','●','✦','■','♬','★','△','♥'];
+
+        function startMemory() {
+          clearGameRuntime();
+          canvas.hidden = true;
+          memoryBoard.hidden = false;
+          running = true;
+          const deck = [...memorySymbols, ...memorySymbols]
+          .map((symbol, idx) => ({ symbol, id: idx, sort: Math.random() }))
+          .sort((a,b) => a.sort-b.sort);
+          memoryState = { open: [], matched: 0, moves: 0, locked: false };
+          currentScore.textContent = '0 MOVES';
+
+          deck.forEach((card, idx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'memory-card';
+            btn.dataset.index = String(idx);
+            btn.dataset.symbol = card.symbol;
+            btn.innerHTML = `
+            <span class="memory-card-inner front">?</span>
+            <span class="memory-card-inner back">${card.symbol}</span>
+            `;
+            btn.addEventListener('click', () => flipMemory(btn));
+            memoryBoard.appendChild(btn);
+          });
+        }
+
+        function flipMemory(card) {
+          const s = memoryState;
+          if (!running || s.locked || card.classList.contains('is-open') || card.classList.contains('is-matched')) return;
+          card.classList.add('is-open');
+          s.open.push(card);
+          beep(520, .025, .018);
+          if (s.open.length < 2) return;
+
+          s.moves++;
+          currentScore.textContent = `${s.moves} MOVES`;
+          const [a,b] = s.open;
+          if (a.dataset.symbol === b.dataset.symbol) {
+            a.classList.add('is-matched');
+            b.classList.add('is-matched');
+            a.classList.remove('is-open');
+            b.classList.remove('is-open');
+            s.open = [];
+            s.matched += 2;
+            beep(760, .055, .025);
+            if (s.matched === 16) {
+              const improved = updateBest('memory', s.moves, true);
+              setTimeout(() => showGameOver({
+                kicker: 'COMPLETE',
+                title: improved ? 'NEW BEST' : 'Усі пари знайдено',
+                text: `${s.moves} ходів. ${improved ? 'Новий найкращий результат.' : 'Спробуєш пройти ще швидше?'}`,
+                button: 'PLAY AGAIN',
+                mood: 'happy'
+              }), 350);
+            }
+          } else {
+            s.locked = true;
+            setTimeout(() => {
+              a.classList.remove('is-open');
+              b.classList.remove('is-open');
+              s.open = [];
+              s.locked = false;
+            }, 620);
+          }
+        }
+
+        // -------------------- PONG --------------------
+        let pongState = null;
+        function startPong() {
+          clearGameRuntime();
+          pongControls.hidden = false;
+          canvas.hidden = false;
+          running = true;
+          pongState = {
+            paddleX: .5,
+            move: 0,
+            ball: { x:.5, y:.48, vx:.24*(Math.random()>.5?1:-1), vy:.30 },
+ score: 0,
+ last: performance.now()
+          };
+          currentScore.textContent = '0';
+          rafId = requestAnimationFrame(pongLoop);
+        }
+
+        function pongLoop(now) {
+          if (!running || activeGame !== 'pong') return;
+          const s = pongState;
+          const dt = Math.min((now-s.last)/1000, .035);
+          s.last = now;
+          s.paddleX = Math.max(.14, Math.min(.86, s.paddleX + s.move*dt*.72));
+          const b = s.ball;
+          b.x += b.vx*dt;
+          b.y += b.vy*dt;
+
+          if (b.x < .035 && b.vx < 0) { b.x = .035; b.vx *= -1; beep(260,.018,.012); }
+          if (b.x > .965 && b.vx > 0) { b.x = .965; b.vx *= -1; beep(260,.018,.012); }
+          if (b.y < .035 && b.vy < 0) { b.y = .035; b.vy *= -1; beep(280,.018,.012); }
+
+          const paddleY = .86;
+          const paddleHalf = .14;
+          if (b.vy > 0 && b.y > paddleY-.035 && b.y < paddleY+.025 && Math.abs(b.x-s.paddleX) < paddleHalf) {
+            b.y = paddleY-.04;
+            b.vy = -Math.abs(b.vy)*1.025;
+            b.vx += (b.x-s.paddleX)*.30;
+            b.vx = Math.max(-.58, Math.min(.58, b.vx));
+            s.score++;
+            currentScore.textContent = s.score;
+            beep(640,.03,.02);
+          }
+
+          if (b.y > 1.04) {
+            const improved = updateBest('pong', s.score);
+            showGameOver({
+              title: improved ? 'NEW HIGH SCORE' : 'Missed!',
+              text: `Відбиттів: ${s.score}. ${improved ? 'Новий рекорд збережено.' : 'Ще одна спроба?'}`,
+              mood: improved ? 'happy' : 'sad'
+            });
+            return;
+          }
+
+          drawPong();
+          rafId = requestAnimationFrame(pongLoop);
+        }
+
+        function drawPong() {
+          const { size } = fitCanvas();
+          const s = pongState;
+          drawGrid(size, 18);
+          drawBean(s.ball.x*size, s.ball.y*size, size*.032);
+          roundedRect((s.paddleX-.14)*size, .86*size, .28*size, .028*size, 7, COLORS.cream);
+          ctx.textAlign = 'center';
+          ctx.fillStyle = COLORS.muted;
+          ctx.font = `${Math.round(size*.028)}px monospace`;
+          ctx.fillText('KEEP THE BEAN ALIVE', size*.5, size*.08);
+        }
+
+        // -------------------- CUP STACK --------------------
+        let stackState = null;
+
+        function startStack() {
+          clearGameRuntime();
+          canvas.hidden = false;
+          running = true;
+          stackState = {
+            layers: [{ x:.5, y:.86, w:.48 }],
+            moving: { x:.24, y:.76, w:.48, dir:1 },
+            score: 0,
+            speed: .34,
+            last: performance.now()
+          };
+          currentScore.textContent = '0';
+          rafId = requestAnimationFrame(stackLoop);
+        }
+
+        function stackLoop(now) {
+          if (!running || activeGame !== 'stack') return;
+          const s = stackState;
+          const dt = Math.min((now-s.last)/1000, .035);
+          s.last = now;
+          const m = s.moving;
+          m.x += m.dir * s.speed * dt;
+          const minX = m.w/2 + .035;
+          const maxX = 1 - m.w/2 - .035;
+          if (m.x <= minX) { m.x = minX; m.dir = 1; }
+          if (m.x >= maxX) { m.x = maxX; m.dir = -1; }
+          drawStack();
+          rafId = requestAnimationFrame(stackLoop);
+        }
+
+        function dropStackCup() {
+          if (!running || activeGame !== 'stack' || !stackState) return;
+          const s = stackState;
+          const m = s.moving;
+          const prev = s.layers[s.layers.length - 1];
+          const left = Math.max(m.x - m.w/2, prev.x - prev.w/2);
+          const right = Math.min(m.x + m.w/2, prev.x + prev.w/2);
+          const overlap = right - left;
+
+          if (overlap <= .025) {
+            beep(120, .12, .04);
+            const improved = updateBest('stack', s.score);
+            showGameOver({
+              title: improved ? 'NEW HIGH SCORE' : 'Tower down!',
+              text: `Чашок у вежі: ${s.score}. ${improved ? 'Новий рекорд.' : 'Спробуєш ще?'}`,
+              mood: improved ? 'happy' : 'sad'
+            });
+            return;
+          }
+
+          const x = (left + right) / 2;
+          const layer = { x, y:m.y, w:overlap };
+          s.layers.push(layer);
+          s.score++;
+          currentScore.textContent = s.score;
+          beep(680 + Math.min(260, s.score*18), .035, .022);
+          s.speed = Math.min(.68, .34 + s.score*.018);
+
+          let nextY = m.y - .095;
+          if (nextY < .16) {
+            s.layers.forEach(l => l.y += .095);
+            nextY = .16;
+          }
+          const fromLeft = s.score % 2 === 0;
+          s.moving = {
+            x: fromLeft ? overlap/2 + .04 : 1 - overlap/2 - .04,
+            y: nextY,
+            w: overlap,
+            dir: fromLeft ? 1 : -1
+          };
+        }
+
+        function drawStack() {
+          const { size } = fitCanvas();
+          const s = stackState;
+          drawGrid(size, 18);
+          ctx.textAlign = 'left';
+          ctx.fillStyle = COLORS.muted;
+          ctx.font = `${Math.round(size*.030)}px monospace`;
+          ctx.fillText('TAP TO DROP', size*.05, size*.07);
+
+          const h = size*.065;
+          s.layers.forEach((l, i) => drawCupLayer(l.x*size, l.y*size, l.w*size, h, i));
+          drawCupLayer(s.moving.x*size, s.moving.y*size, s.moving.w*size, h, s.layers.length);
+        }
+
+        // -------------------- BREAKOUT --------------------
+        let breakoutState = null;
+
+        function makeBricks() {
+          const bricks = [];
+          const rows = 4;
+          const cols = 6;
+          const w = .125;
+          const h = .048;
+          const gapX = .018;
+          const gapY = .018;
+          const totalW = cols*w + (cols-1)*gapX;
+          const startX = (1-totalW)/2;
+          for (let r=0; r<rows; r++) {
+            for (let c=0; c<cols; c++) {
+              bricks.push({
+                x: startX + c*(w+gapX),
+                          y: .13 + r*(h+gapY),
+                          w, h,
+                          alive: true,
+                          parity: (r+c)%2
+              });
+            }
+          }
+          return bricks;
+        }
+
+        function startBreakout() {
+          clearGameRuntime();
+          pongControls.hidden = false;
+          canvas.hidden = false;
+          running = true;
+          breakoutState = {
+            paddleX: .5,
+            move: 0,
+            ball: { x:.5, y:.66, vx:.25*(Math.random()>.5?1:-1), vy:-.31 },
+ bricks: makeBricks(),
+ score: 0,
+ last: performance.now()
+          };
+          currentScore.textContent = '0';
+          rafId = requestAnimationFrame(breakoutLoop);
+        }
+
+        function breakoutLoop(now) {
+          if (!running || activeGame !== 'breakout') return;
+          const s = breakoutState;
+          const dt = Math.min((now-s.last)/1000, .035);
+          s.last = now;
+          s.paddleX = Math.max(.14, Math.min(.86, s.paddleX + s.move*dt*.78));
+          const b = s.ball;
+          b.x += b.vx*dt;
+          b.y += b.vy*dt;
+          const radius = .022;
+
+          if (b.x < radius && b.vx < 0) { b.x = radius; b.vx *= -1; }
+          if (b.x > 1-radius && b.vx > 0) { b.x = 1-radius; b.vx *= -1; }
+          if (b.y < radius && b.vy < 0) { b.y = radius; b.vy *= -1; }
+
+          const paddleY = .88;
+          const paddleHalf = .14;
+          if (b.vy > 0 && b.y > paddleY-.04 && b.y < paddleY+.025 && Math.abs(b.x-s.paddleX) < paddleHalf) {
+            b.y = paddleY-.045;
+            b.vy = -Math.abs(b.vy)*1.015;
+            b.vx += (b.x-s.paddleX)*.32;
+            b.vx = Math.max(-.60, Math.min(.60, b.vx));
+            beep(610,.025,.018);
+          }
+
+          for (const brick of s.bricks) {
+            if (!brick.alive) continue;
+            if (
+              b.x + radius > brick.x &&
+              b.x - radius < brick.x + brick.w &&
+              b.y + radius > brick.y &&
+              b.y - radius < brick.y + brick.h
+            ) {
+              brick.alive = false;
+              b.vy *= -1;
+              s.score += 10;
+              currentScore.textContent = s.score;
+              beep(760,.025,.018);
+              break;
+            }
+          }
+
+          if (s.bricks.every(brick => !brick.alive)) {
+            const improved = updateBest('breakout', s.score);
+            showGameOver({
+              kicker: 'CLEAR!',
+              title: improved ? 'NEW HIGH SCORE' : 'Perfect brew!',
+              text: `Усі блоки розбиті. Результат: ${s.score}.`,
+              button: 'PLAY AGAIN',
+              mood: 'happy'
+            });
+            return;
+          }
+
+          if (b.y > 1.05) {
+            const improved = updateBest('breakout', s.score);
+            showGameOver({
+              title: improved ? 'NEW HIGH SCORE' : 'Ball lost!',
+              text: `Результат: ${s.score}. ${improved ? 'Новий рекорд.' : 'Ще одна спроба?'}`,
+              mood: improved ? 'happy' : 'sad'
+            });
+            return;
+          }
+
+          drawBreakout();
+          rafId = requestAnimationFrame(breakoutLoop);
+        }
+
+        function drawBreakout() {
+          const { size } = fitCanvas();
+          const s = breakoutState;
+          drawGrid(size, 18);
+          s.bricks.forEach(brick => {
+            if (!brick.alive) return;
+            roundedRect(brick.x*size, brick.y*size, brick.w*size, brick.h*size, 2, brick.parity ? COLORS.accent : COLORS.blue);
+          });
+          drawBean(s.ball.x*size, s.ball.y*size, size*.030);
+          roundedRect((s.paddleX-.14)*size, .88*size, .28*size, .028*size, 7, COLORS.cream);
+        }
+
+        // -------------------- TOUCH / POINTER --------------------
         let gestureStart = null;
 
         canvas.addEventListener('pointerdown', (e) => {
@@ -455,15 +887,20 @@
           gestureStart = { x: e.clientX, y: e.clientY, t: performance.now() };
           canvas.setPointerCapture?.(e.pointerId);
 
+          const rect = canvas.getBoundingClientRect();
+          const x = (e.clientX - rect.left) / rect.width;
+
           if (activeGame === 'catcher' && catcherState) {
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width;
             catcherState.cupX = Math.max(.13, Math.min(.87, x));
           }
           if (activeGame === 'pong' && pongState) {
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width;
             pongState.paddleX = Math.max(.14, Math.min(.86, x));
+          }
+          if (activeGame === 'breakout' && breakoutState) {
+            breakoutState.paddleX = Math.max(.14, Math.min(.86, x));
+          }
+          if (activeGame === 'stack' && stackState && running) {
+            dropStackCup();
           }
         });
 
@@ -474,6 +911,7 @@
           const x = (e.clientX - rect.left) / rect.width;
           if (activeGame === 'catcher' && catcherState) catcherState.cupX = Math.max(.13, Math.min(.87, x));
           if (activeGame === 'pong' && pongState) pongState.paddleX = Math.max(.14, Math.min(.86, x));
+          if (activeGame === 'breakout' && breakoutState) breakoutState.paddleX = Math.max(.14, Math.min(.86, x));
         });
 
           canvas.addEventListener('pointerup', (e) => {
@@ -485,7 +923,6 @@
               const dy = e.clientY - gestureStart.y;
               const rect = canvas.getBoundingClientRect();
               const threshold = Math.max(18, Math.min(rect.width, rect.height) * .055);
-
               if (Math.max(Math.abs(dx), Math.abs(dy)) >= threshold) {
                 if (Math.abs(dx) > Math.abs(dy)) setSnakeDir(dx > 0 ? 1 : -1, 0);
                 else setSnakeDir(0, dy > 0 ? 1 : -1);
@@ -496,157 +933,24 @@
 
           canvas.addEventListener('pointercancel', () => { gestureStart = null; });
 
-          // -------------------- MEMORY --------------------
-          let memoryState = null;
-          const memorySymbols = ['◆','●','✦','■','♬','★','△','♥'];
-          function startMemory() {
-            clearGameRuntime();
-            canvas.hidden = true;
-            memoryBoard.hidden = false;
-            running = true;
-            const deck = [...memorySymbols, ...memorySymbols]
-            .map((symbol, idx) => ({ symbol, id: idx, sort: Math.random() }))
-            .sort((a,b) => a.sort-b.sort);
-            memoryState = { open: [], matched: 0, moves: 0, locked: false };
-            currentScore.textContent = '0 MOVES';
-
-            deck.forEach((card, idx) => {
-              const btn = document.createElement('button');
-              btn.type = 'button';
-              btn.className = 'memory-card';
-              btn.dataset.index = String(idx);
-              btn.dataset.symbol = card.symbol;
-              btn.innerHTML = `
-              <span class="memory-card-inner front">?</span>
-              <span class="memory-card-inner back">${card.symbol}</span>
-              `;
-              btn.addEventListener('click', () => flipMemory(btn));
-              memoryBoard.appendChild(btn);
-            });
-          }
-
-          function flipMemory(card) {
-            const s = memoryState;
-            if (!running || s.locked || card.classList.contains('is-open') || card.classList.contains('is-matched')) return;
-            card.classList.add('is-open');
-            s.open.push(card);
-            beep(520, .025, .018);
-            if (s.open.length < 2) return;
-
-            s.moves++;
-            currentScore.textContent = `${s.moves} MOVES`;
-            const [a,b] = s.open;
-            if (a.dataset.symbol === b.dataset.symbol) {
-              a.classList.add('is-matched');
-              b.classList.add('is-matched');
-              a.classList.remove('is-open');
-              b.classList.remove('is-open');
-              s.open = [];
-              s.matched += 2;
-              beep(760, .055, .025);
-              if (s.matched === 16) {
-                const improved = updateBest('memory', s.moves, true);
-                setTimeout(() => showGameOver({
-                  kicker: 'COMPLETE',
-                  title: improved ? 'NEW BEST' : 'Усі пари знайдено',
-                  text: `${s.moves} ходів. ${improved ? 'Новий найкращий результат.' : 'Спробуєш пройти ще швидше?'}`,
-                  button: 'PLAY AGAIN'
-                }), 350);
-              }
-            } else {
-              s.locked = true;
-              setTimeout(() => {
-                a.classList.remove('is-open');
-                b.classList.remove('is-open');
-                s.open = [];
-                s.locked = false;
-              }, 620);
-            }
-          }
-
-          // -------------------- PONG --------------------
-          let pongState = null;
-          function startPong() {
-            clearGameRuntime();
-            pongControls.hidden = false;
-            canvas.hidden = false;
-            running = true;
-            pongState = {
-              paddleX: .5,
-              move: 0,
-              ball: { x:.5, y:.48, vx:.24*(Math.random()>.5?1:-1), vy:.30 },
- score: 0,
- last: performance.now()
-            };
-            currentScore.textContent = '0';
-            rafId = requestAnimationFrame(pongLoop);
-          }
-
-          function pongLoop(now) {
-            if (!running || activeGame !== 'pong') return;
-            const s = pongState;
-            const dt = Math.min((now-s.last)/1000, .035);
-            s.last = now;
-            s.paddleX = Math.max(.14, Math.min(.86, s.paddleX + s.move*dt*.72));
-            const b = s.ball;
-            b.x += b.vx*dt;
-            b.y += b.vy*dt;
-
-            if (b.x < .035 && b.vx < 0) { b.x = .035; b.vx *= -1; beep(260,.018,.012); }
-            if (b.x > .965 && b.vx > 0) { b.x = .965; b.vx *= -1; beep(260,.018,.012); }
-            if (b.y < .035 && b.vy < 0) { b.y = .035; b.vy *= -1; beep(280,.018,.012); }
-
-            const paddleY = .86;
-            const paddleHalf = .14;
-            if (b.vy > 0 && b.y > paddleY-.035 && b.y < paddleY+.025 && Math.abs(b.x-s.paddleX) < paddleHalf) {
-              b.y = paddleY-.04;
-              b.vy = -Math.abs(b.vy)*1.025;
-              b.vx += (b.x-s.paddleX)*.30;
-              b.vx = Math.max(-.58, Math.min(.58, b.vx));
-              s.score++;
-              currentScore.textContent = s.score;
-              beep(640,.03,.02);
-            }
-
-            if (b.y > 1.04) {
-              const improved = updateBest('pong', s.score);
-              showGameOver({
-                title: improved ? 'NEW HIGH SCORE' : 'Missed!',
-                text: `Відбиттів: ${s.score}. ${improved ? 'Новий рекорд збережено.' : 'Ще одна спроба?'}`
-              });
-              return;
-            }
-
-            drawPong();
-            rafId = requestAnimationFrame(pongLoop);
-          }
-
-          function drawPong() {
-            const { size } = fitCanvas();
-            const s = pongState;
-            drawGrid(size, 18);
-            drawBean(s.ball.x*size, s.ball.y*size, size*.032);
-            roundedRect((s.paddleX-.14)*size, .86*size, .28*size, .028*size, 7, COLORS.cream);
-            ctx.textAlign = 'center';
-            ctx.fillStyle = COLORS.muted;
-            ctx.font = `${Math.round(size*.028)}px monospace`;
-            ctx.fillText('KEEP THE BEAN ALIVE', size*.5, size*.08);
-          }
-
+          // -------------------- BUTTON CONTROLS --------------------
           $$('[data-pong]').forEach(btn => {
             const value = btn.dataset.pong === 'left' ? -1 : 1;
-            btn.addEventListener('pointerdown', e => { e.preventDefault(); if (pongState) pongState.move = value; });
-            btn.addEventListener('pointerup', () => { if (pongState) pongState.move = 0; });
-            btn.addEventListener('pointercancel', () => { if (pongState) pongState.move = 0; });
-            btn.addEventListener('pointerleave', () => { if (pongState) pongState.move = 0; });
+            const apply = (v) => {
+              if (activeGame === 'pong' && pongState) pongState.move = v;
+              if (activeGame === 'breakout' && breakoutState) breakoutState.move = v;
+            };
+              btn.addEventListener('pointerdown', e => { e.preventDefault(); apply(value); });
+              ['pointerup','pointercancel','pointerleave'].forEach(name => btn.addEventListener(name, () => apply(0)));
           });
 
           // -------------------- KEYBOARD --------------------
           const keyState = new Set();
+
           window.addEventListener('keydown', (e) => {
             if (!dialog.open) return;
             const k = e.key.toLowerCase();
-            if (['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d',' '].includes(k)) e.preventDefault();
+            if (['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d',' ','enter'].includes(k)) e.preventDefault();
             keyState.add(k);
 
             if (activeGame === 'snake') {
@@ -663,6 +967,13 @@
               if (k === 'arrowleft' || k === 'a') pongState.move = -1;
               if (k === 'arrowright' || k === 'd') pongState.move = 1;
             }
+            if (activeGame === 'breakout' && breakoutState) {
+              if (k === 'arrowleft' || k === 'a') breakoutState.move = -1;
+              if (k === 'arrowright' || k === 'd') breakoutState.move = 1;
+            }
+            if (activeGame === 'stack' && stackState && running && (k === ' ' || k === 'enter')) {
+              if (!e.repeat) dropStackCup();
+            }
           });
 
           window.addEventListener('keyup', (e) => {
@@ -674,6 +985,9 @@
             if (activeGame === 'pong' && pongState) {
               if (!keyState.has('arrowleft') && !keyState.has('a') && !keyState.has('arrowright') && !keyState.has('d')) pongState.move = 0;
             }
+            if (activeGame === 'breakout' && breakoutState) {
+              if (!keyState.has('arrowleft') && !keyState.has('a') && !keyState.has('arrowright') && !keyState.has('d')) breakoutState.move = 0;
+            }
           });
 
           window.addEventListener('resize', () => {
@@ -682,8 +996,12 @@
               if (activeGame === 'snake') drawSnake();
               if (activeGame === 'catcher') drawCatcher();
               if (activeGame === 'pong') drawPong();
-            } else if (activeGame) drawIdleFrame(activeGame);
+              if (activeGame === 'stack') drawStack();
+              if (activeGame === 'breakout') drawBreakout();
+            } else if (activeGame) {
+              drawIdleFrame(activeGame);
+            }
           });
 
-            refreshBestLabels();
+          refreshBestLabels();
 })();
