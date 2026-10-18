@@ -27,45 +27,45 @@
   const mascotBubble = $('#mascotBubble');
 
   const COLORS = {
-    bg: '#030a25',
-    grid: 'rgba(101,181,255,.075)',
+    bg: '#170e26',
+    grid: 'rgba(255,155,57,.09)',
  cream: '#f0ecff',
  muted: '#7088b9',
- accent: '#9b63ff',
- blue: '#65b5ff',
- dark: '#07102f',
- panel: '#0b1640'
+ accent: '#b86cff',
+ blue: '#ff9b39',
+ dark: '#1b112a',
+ panel: '#291837'
   };
 
   const GAME_INFO = {
     snake: {
-      title: 'Coffee Snake',
-      intro: 'Збирай зерна. На телефоні керуй свайпами.',
+      title: 'Ghost Snake',
+      intro: 'Керуй привидом, збирай чарівні гарбузи та уникай стін.',
       hint: 'Свайп ← ↑ ↓ → · або кнопки / WASD'
     },
     catcher: {
-      title: 'Bean Catcher',
-      intro: 'Веди чашку пальцем і лови зерна. Три промахи завершують гру.',
+      title: 'Candy Catch',
+      intro: 'Лови геловінські цукерки кошиком. Три промахи — кінець гри.',
       hint: 'Веди пальцем ← → · або A / D'
     },
     memory: {
-      title: 'Coffee Memory',
-      intro: 'Відкривай картки тапами та знайди всі однакові пари.',
+      title: 'Monster Memory',
+      intro: 'Знайди пари геловінських монстрів за найменшу кількість ходів.',
       hint: 'Тапай по картках'
     },
     pong: {
-      title: 'Espresso Pong',
-      intro: 'Веди платформу пальцем і не дай зерну впасти.',
+      title: 'Bat Bounce',
+      intro: 'Відбивай летючого кажана платформою, не дай йому впасти.',
       hint: 'Веди пальцем ← → · або кнопки / A / D'
     },
     stack: {
-      title: 'Cup Stack',
-      intro: 'Тапай у потрібний момент і складай чашки якомога вище.',
+      title: 'Pumpkin Stack',
+      intro: 'Складай гарбузи у високу вежу. Натискай у потрібний момент.',
       hint: 'Тап по полю · або SPACE / ENTER'
     },
     breakout: {
-      title: 'Coffee Breakout',
-      intro: 'Рухай платформу пальцем і розбий усі піксельні блоки.',
+      title: 'Haunted Breakout',
+      intro: 'Розбий усі прокляті блоки чарівною кулею.',
       hint: 'Веди пальцем ← → · або кнопки / A / D'
     }
   };
@@ -79,8 +79,8 @@
   let audioCtx = null;
 
   const storageKey = (game) => `poroRetroBest:${game}`;
-  const getBest = (game) => localStorage.getItem(storageKey(game));
-  const setBest = (game, value) => localStorage.setItem(storageKey(game), String(value));
+  const getBest = (game) => { try { return localStorage.getItem(storageKey(game)); } catch (_) { return null; } };
+  const setBest = (game, value) => { try { localStorage.setItem(storageKey(game), String(value)); } catch (_) {} };
 
   function bestValue(game) {
     const raw = getBest(game);
@@ -123,7 +123,7 @@
   });
 
     // -------------------- MASCOT --------------------
-    const mascotPhrases = ['LET\'S PLAY!', 'COFFEE TIME!', 'HI!', 'ONE MORE?', 'GOOD LUCK!'];
+    const mascotPhrases = ['BOO!', 'TRICK OR TREAT!', 'SPOOKY!', 'ONE MORE?', 'GOOD LUCK!'];
     let mascotTimer = null;
 
     homeMascot.addEventListener('click', () => {
@@ -278,30 +278,30 @@
           ctx.textBaseline = 'middle';
           ctx.fillStyle = COLORS.muted;
           ctx.font = `${Math.round(size * .035)}px monospace`;
-          ctx.fillText(game === 'memory' ? 'FLIP THE CARDS' : 'INSERT COIN', size / 2, size * .80);
+          ctx.fillText(game === 'memory' ? 'FIND THE MONSTERS' : 'TRICK OR TREAT', size / 2, size * .80);
 
           if (game === 'snake') {
             const u = size / 18;
             [[6,9],[7,9],[8,9],[9,9],[9,8]].forEach(([x,y], idx) => roundedRect(x*u+2, y*u+2, u-4, u-4, u*.18, idx === 0 ? COLORS.cream : COLORS.blue));
-            drawBean(12.5*u, 8.5*u, u*.32);
+            drawCandy(12.5*u, 8.5*u, u*.32);
           } else if (game === 'catcher') {
             drawCup(size*.5, size*.65, size*.19);
-            drawBean(size*.42, size*.33, size*.035);
-            drawBean(size*.58, size*.22, size*.035);
+            drawCandy(size*.42, size*.33, size*.035);
+            drawCandy(size*.58, size*.22, size*.035);
           } else if (game === 'pong') {
-            drawBean(size*.52, size*.43, size*.04);
+            drawCandy(size*.52, size*.43, size*.04);
             roundedRect(size*.36, size*.69, size*.28, size*.035, 8, COLORS.cream);
           } else if (game === 'stack') {
-            drawCupLayer(size*.5, size*.68, size*.42, size*.085, 0);
-            drawCupLayer(size*.48, size*.58, size*.35, size*.085, 1);
-            drawCupLayer(size*.53, size*.48, size*.28, size*.085, 2);
+            drawPumpkinLayer(size*.5, size*.68, size*.42, size*.085, 0);
+            drawPumpkinLayer(size*.48, size*.58, size*.35, size*.085, 1);
+            drawPumpkinLayer(size*.53, size*.48, size*.28, size*.085, 2);
           } else if (game === 'breakout') {
             for (let r = 0; r < 3; r++) {
               for (let c = 0; c < 5; c++) {
                 roundedRect(size*(.12+c*.16), size*(.18+r*.075), size*.13, size*.045, 2, (r+c)%2 ? COLORS.accent : COLORS.blue);
               }
             }
-            drawBean(size*.5, size*.54, size*.032);
+            drawCandy(size*.5, size*.54, size*.032);
             roundedRect(size*.36, size*.69, size*.28, size*.035, 8, COLORS.cream);
           }
         }
@@ -314,7 +314,7 @@
           ctx.fill();
         }
 
-        function drawBean(x, y, r) {
+        function drawCandy(x, y, r) {
           ctx.save();
           ctx.translate(x, y);
           ctx.rotate(-.55);
@@ -345,7 +345,7 @@
           ctx.fill();
         }
 
-        function drawCupLayer(cx, cy, width, height, parity = 0) {
+        function drawOriginalCupLayer(cx, cy, width, height, parity = 0) {
           const fill = parity % 2 ? COLORS.accent : COLORS.blue;
           roundedRect(cx - width/2, cy - height/2, width, height, Math.max(2, height*.12), fill);
           ctx.strokeStyle = fill;
@@ -354,6 +354,39 @@
           ctx.arc(cx + width*.52, cy, height*.40, -Math.PI/2, Math.PI/2);
           ctx.stroke();
           roundedRect(cx - width*.28, cy - height*.25, width*.42, height*.20, 1, COLORS.bg);
+        }
+
+        function drawPumpkin(x,y,r) {
+          ctx.fillStyle='#ff8c24';
+          ctx.beginPath(); ctx.ellipse(x,y,r*1.1,r*.85,0,0,Math.PI*2); ctx.fill();
+          ctx.fillStyle='#4cc47b'; ctx.fillRect(x-r*.13,y-r*1.1,r*.27,r*.45);
+          ctx.fillStyle='#2c1732';
+          ctx.fillRect(x-r*.48,y-r*.19,r*.23,r*.22); ctx.fillRect(x+r*.25,y-r*.19,r*.23,r*.22);
+          ctx.fillRect(x-r*.25,y+r*.26,r*.5,r*.15);
+        }
+        function drawCandy(x,y,r) {
+          ctx.fillStyle='#ffb54e';
+          ctx.beginPath(); ctx.moveTo(x-r*1.55,y-r*.6); ctx.lineTo(x-r*.7,y); ctx.lineTo(x-r*1.55,y+r*.6); ctx.fill();
+          ctx.beginPath(); ctx.moveTo(x+r*1.55,y-r*.6); ctx.lineTo(x+r*.7,y); ctx.lineTo(x+r*1.55,y+r*.6); ctx.fill();
+          roundedRect(x-r*.85,y-r*.65,r*1.7,r*1.3,r*.3,'#b86cff');
+          roundedRect(x-r*.15,y-r*.65,r*.3,r*1.3,0,'#fff1cf');
+        }
+        function drawGhost(x,y,r) {
+          ctx.fillStyle='#f5ecff'; ctx.beginPath(); ctx.arc(x,y-r*.12,r,Math.PI,0);
+          ctx.lineTo(x+r,y+r);ctx.lineTo(x+r*.45,y+r*.7);ctx.lineTo(x,y+r);ctx.lineTo(x-r*.45,y+r*.7);ctx.lineTo(x-r,y+r);ctx.closePath();ctx.fill();
+          ctx.fillStyle='#281533';ctx.fillRect(x-r*.48,y-r*.22,r*.23,r*.34);ctx.fillRect(x+r*.25,y-r*.22,r*.23,r*.34);
+        }
+        function drawBat(x,y,r) {
+          ctx.fillStyle='#b86cff';ctx.beginPath();ctx.moveTo(x,y-r*.4);
+          ctx.lineTo(x-r*.45,y-r*.1);ctx.lineTo(x-r*1.5,y-r*.8);ctx.lineTo(x-r*1.2,y+r*.65);
+          ctx.lineTo(x-r*.55,y+r*.3);ctx.lineTo(x,y+r*.8);ctx.lineTo(x+r*.55,y+r*.3);
+          ctx.lineTo(x+r*1.2,y+r*.65);ctx.lineTo(x+r*1.5,y-r*.8);ctx.lineTo(x+r*.45,y-r*.1);ctx.closePath();ctx.fill();
+          ctx.fillStyle='#fff1cf';ctx.fillRect(x-r*.4,y,r*.2,r*.2);ctx.fillRect(x+r*.2,y,r*.2,r*.2);
+        }
+        function drawPumpkinLayer(cx,cy,w,h,parity=0) {
+          roundedRect(cx-w/2,cy-h/2,w,h,h*.35,parity%2?'#e87925':'#ff9b39');
+          roundedRect(cx-w*.06,cy-h*.78,w*.12,h*.35,1,'#4cc47b');
+          ctx.fillStyle='#30132c';ctx.fillRect(cx-w*.23,cy-h*.10,w*.09,h*.22);ctx.fillRect(cx+w*.14,cy-h*.10,w*.09,h*.22);
         }
 
         // -------------------- SNAKE --------------------
@@ -430,9 +463,10 @@
           drawGrid(size, s.cells);
           const u = size / s.cells;
           s.snake.forEach((p, i) => {
-            roundedRect(p.x*u + u*.12, p.y*u + u*.12, u*.76, u*.76, u*.18, i === 0 ? COLORS.cream : COLORS.blue);
+            if (i === 0) drawGhost((p.x+.5)*u,(p.y+.5)*u,u*.39);
+            else roundedRect(p.x*u + u*.12, p.y*u + u*.12, u*.76, u*.76, u*.18, COLORS.accent);
           });
-          drawBean((s.food.x+.5)*u, (s.food.y+.5)*u, u*.27);
+          drawPumpkin((s.food.x+.5)*u, (s.food.y+.5)*u, u*.34);
         }
 
         function setSnakeDir(x, y) {
@@ -499,7 +533,7 @@
               if (s.misses >= 3) {
                 const improved = updateBest('catcher', s.score);
                 showGameOver({
-                  title: improved ? 'NEW HIGH SCORE' : 'Shift over',
+                  title: improved ? 'NEW HIGH SCORE' : 'No more candy!',
                   text: `Результат: ${s.score}. Пропущено 3 зерна.`,
                   mood: improved ? 'happy' : 'sad'
                 });
@@ -515,8 +549,8 @@
           const { size } = fitCanvas();
           const s = catcherState;
           drawGrid(size, 18);
-          s.beans.forEach(b => drawBean(b.x*size, b.y*size, size*.028));
-          drawCup(s.cupX*size, size*.86, size*.21);
+          s.beans.forEach(b => drawCandy(b.x*size, b.y*size, size*.028));
+          drawPumpkinLayer(s.cupX*size, size*.86, size*.24, size*.11);
           ctx.textAlign = 'left';
           ctx.fillStyle = COLORS.muted;
           ctx.font = `${Math.round(size*.033)}px monospace`;
@@ -527,7 +561,7 @@
 
         // -------------------- MEMORY --------------------
         let memoryState = null;
-        const memorySymbols = ['◆','●','✦','■','♬','★','△','♥'];
+        const memorySymbols = ['🎃','👻','🦇','🕷️','💀','🧙','🍬','🧟'];
 
         function startMemory() {
           clearGameRuntime();
@@ -657,12 +691,12 @@
           const { size } = fitCanvas();
           const s = pongState;
           drawGrid(size, 18);
-          drawBean(s.ball.x*size, s.ball.y*size, size*.032);
+          drawBat(s.ball.x*size, s.ball.y*size, size*.032);
           roundedRect((s.paddleX-.14)*size, .86*size, .28*size, .028*size, 7, COLORS.cream);
           ctx.textAlign = 'center';
           ctx.fillStyle = COLORS.muted;
           ctx.font = `${Math.round(size*.028)}px monospace`;
-          ctx.fillText('KEEP THE BEAN ALIVE', size*.5, size*.08);
+          ctx.fillText('KEEP THE BAT FLYING', size*.5, size*.08);
         }
 
         // -------------------- CUP STACK --------------------
@@ -711,7 +745,7 @@
             beep(120, .12, .04);
             const improved = updateBest('stack', s.score);
             showGameOver({
-              title: improved ? 'NEW HIGH SCORE' : 'Tower down!',
+              title: improved ? 'NEW HIGH SCORE' : 'Pumpkins fell!',
               text: `Чашок у вежі: ${s.score}. ${improved ? 'Новий рекорд.' : 'Спробуєш ще?'}`,
               mood: improved ? 'happy' : 'sad'
             });
@@ -747,11 +781,11 @@
           ctx.textAlign = 'left';
           ctx.fillStyle = COLORS.muted;
           ctx.font = `${Math.round(size*.030)}px monospace`;
-          ctx.fillText('TAP TO DROP', size*.05, size*.07);
+          ctx.fillText('STACK THE PUMPKINS', size*.05, size*.07);
 
           const h = size*.065;
-          s.layers.forEach((l, i) => drawCupLayer(l.x*size, l.y*size, l.w*size, h, i));
-          drawCupLayer(s.moving.x*size, s.moving.y*size, s.moving.w*size, h, s.layers.length);
+          s.layers.forEach((l, i) => drawPumpkinLayer(l.x*size, l.y*size, l.w*size, h, i));
+          drawPumpkinLayer(s.moving.x*size, s.moving.y*size, s.moving.w*size, h, s.layers.length);
         }
 
         // -------------------- BREAKOUT --------------------
@@ -844,7 +878,7 @@
             const improved = updateBest('breakout', s.score);
             showGameOver({
               kicker: 'CLEAR!',
-              title: improved ? 'NEW HIGH SCORE' : 'Perfect brew!',
+              title: improved ? 'NEW HIGH SCORE' : 'Haunted house cleared!',
               text: `Усі блоки розбиті. Результат: ${s.score}.`,
               button: 'PLAY AGAIN',
               mood: 'happy'
@@ -855,7 +889,7 @@
           if (b.y > 1.05) {
             const improved = updateBest('breakout', s.score);
             showGameOver({
-              title: improved ? 'NEW HIGH SCORE' : 'Ball lost!',
+              title: improved ? 'NEW HIGH SCORE' : 'Magic lost!',
               text: `Результат: ${s.score}. ${improved ? 'Новий рекорд.' : 'Ще одна спроба?'}`,
               mood: improved ? 'happy' : 'sad'
             });
@@ -874,7 +908,7 @@
             if (!brick.alive) return;
             roundedRect(brick.x*size, brick.y*size, brick.w*size, brick.h*size, 2, brick.parity ? COLORS.accent : COLORS.blue);
           });
-          drawBean(s.ball.x*size, s.ball.y*size, size*.030);
+          drawPumpkin(s.ball.x*size, s.ball.y*size, size*.030);
           roundedRect((s.paddleX-.14)*size, .88*size, .28*size, .028*size, 7, COLORS.cream);
         }
 
@@ -944,6 +978,16 @@
               ['pointerup','pointercancel','pointerleave'].forEach(name => btn.addEventListener(name, () => apply(0)));
           });
 
+          // iOS Safari fallback for older WebViews without Pointer Events.
+          if (!window.PointerEvent) {
+            const touchEvent = (touch) => ({ clientX:touch.clientX, clientY:touch.clientY, pointerId:1, preventDefault(){} });
+            canvas.addEventListener('touchstart', e => { if (e.cancelable) e.preventDefault(); const t=e.changedTouches[0]; if (!t) return; gestureStart={x:t.clientX,y:t.clientY,t:performance.now()}; const r=canvas.getBoundingClientRect(),x=(t.clientX-r.left)/r.width; if(activeGame==='catcher'&&catcherState) catcherState.cupX=Math.max(.13,Math.min(.87,x)); if(activeGame==='pong'&&pongState) pongState.paddleX=Math.max(.14,Math.min(.86,x)); if(activeGame==='breakout'&&breakoutState) breakoutState.paddleX=Math.max(.14,Math.min(.86,x)); if(activeGame==='stack') dropStackCup(); }, {passive:false});
+            canvas.addEventListener('touchmove', e => { if(e.cancelable)e.preventDefault(); const t=e.changedTouches[0];if(!t)return;const r=canvas.getBoundingClientRect(),x=(t.clientX-r.left)/r.width;if(activeGame==='catcher'&&catcherState)catcherState.cupX=Math.max(.13,Math.min(.87,x));if(activeGame==='pong'&&pongState)pongState.paddleX=Math.max(.14,Math.min(.86,x));if(activeGame==='breakout'&&breakoutState)breakoutState.paddleX=Math.max(.14,Math.min(.86,x)); }, {passive:false});
+            canvas.addEventListener('touchend',e=>{if(e.cancelable)e.preventDefault();const t=e.changedTouches[0];if(t&&gestureStart&&activeGame==='snake'&&running){const dx=t.clientX-gestureStart.x,dy=t.clientY-gestureStart.y;if(Math.max(Math.abs(dx),Math.abs(dy))>18){if(Math.abs(dx)>Math.abs(dy))setSnakeDir(dx>0?1:-1,0);else setSnakeDir(0,dy>0?1:-1);}}gestureStart=null;},{passive:false});
+            $$('[data-dir]').forEach(btn=>btn.addEventListener('touchstart',e=>{if(e.cancelable)e.preventDefault();const m={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};setSnakeDir(...m[btn.dataset.dir]);},{passive:false}));
+            $$('[data-pong]').forEach(btn=>{const v=btn.dataset.pong==='left'?-1:1;const apply=x=>{if(activeGame==='pong'&&pongState)pongState.move=x;if(activeGame==='breakout'&&breakoutState)breakoutState.move=x;};btn.addEventListener('touchstart',e=>{if(e.cancelable)e.preventDefault();apply(v);},{passive:false});btn.addEventListener('touchend',()=>apply(0));btn.addEventListener('touchcancel',()=>apply(0));});
+          }
+
           // -------------------- KEYBOARD --------------------
           const keyState = new Set();
 
@@ -1003,5 +1047,6 @@
             }
           });
 
+          document.querySelectorAll('button, canvas').forEach(el => el.addEventListener('contextmenu', e => e.preventDefault()));
           refreshBestLabels();
 })();

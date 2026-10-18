@@ -1,12 +1,12 @@
 :root {
-  --bg: #020720;
-  --panel: #07102f;
-  --panel-2: #0b1640;
-  --violet: #9b63ff;
-  --violet-soft: #b78aff;
-  --blue: #65b5ff;
+  --bg: #10091c;
+  --panel: #1b112a;
+  --panel-2: #291837;
+  --violet: #b86cff;
+  --violet-soft: #dfabff;
+  --blue: #ff9b39;
   --text: #f0ecff;
-  --muted: #8ea6d5;
+  --muted: #c6a6c9;
   --line: rgba(101, 181, 255, .34);
   --grid: rgba(101, 181, 255, .075);
   --shadow: rgba(0, 0, 0, .42);
@@ -465,3 +465,26 @@ box-shadow: 4px 4px 0 rgba(155,99,255,.22);
     transition-duration: .001ms !important;
   }
 }
+
+/* Halloween skin and iOS Safari touch fixes */
+html { -webkit-text-size-adjust: 100%; }
+button, .game-card, .memory-card, .controls, .pong-controls, .game-stage {
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+}
+button, .game-card, .memory-card { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button *, .game-card * { pointer-events: none; }
+.controls button, .pong-controls button { touch-action: none; min-height: 48px; }
+.game-shell { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.game-dialog { overscroll-behavior: contain; }
+.game-stage, #gameCanvas { touch-action: none; }
+.game-card:active, .memory-card:active, #startGame:active { filter: brightness(1.25); }
+.season-label { display:block; margin-top:7px; font-size:clamp(8px,1.8vw,11px); letter-spacing:.05em; color:#ffb45d; text-align:center; }
+.season-intro { text-align:center; font-size:clamp(9px,2.2vw,12px); color:#ffb45d; margin:0 0 16px; letter-spacing:.06em; }
+.brand-chip { border-color:#ff9b39; }
+.game-card { border-color:rgba(255,155,57,.5); }
+.game-art .blue { fill:#ff9b39; }
+.game-art .violet { fill:#b86cff; }
+.game-stage { background:#170e26; }
+.game-overlay { background:rgba(16,9,28,.91); }
+@media (hover:none) { .game-card:hover { transform:none; } }
