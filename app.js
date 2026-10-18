@@ -63,6 +63,7 @@
       intro: 'Складай гарбузи у високу вежу. Натискай у потрібний момент.',
       hint: 'Тап по полю · або SPACE / ENTER'
     },
+    ghosthunt: { title: 'Ghost Hunt', intro: 'Лови привидів тапами за 30 секунд! Не натискай на гарбузи.', hint: 'Тапай по привидах · 30 секунд' },
     breakout: {
       title: 'Haunted Breakout',
       intro: 'Розбий усі прокляті блоки чарівною кулею.',
@@ -70,7 +71,7 @@
     }
   };
 
-  const SCORE_GAMES = ['snake', 'catcher', 'pong', 'stack', 'breakout'];
+  const SCORE_GAMES = ['snake', 'catcher', 'pong', 'stack', 'breakout', 'ghosthunt'];
   let activeGame = null;
   let running = false;
   let rafId = null;
@@ -220,6 +221,7 @@
         if (activeGame === 'pong') startPong();
         if (activeGame === 'stack') startStack();
         if (activeGame === 'breakout') startBreakout();
+        if (activeGame === 'ghosthunt') startGhostHunt();
       });
 
         function showGameOver({ kicker = 'GAME OVER', title = 'Ще раз?', text = '', button = 'RETRY', mood = 'sad' } = {}) {
@@ -295,6 +297,8 @@
             drawPumpkinLayer(size*.5, size*.68, size*.42, size*.085, 0);
             drawPumpkinLayer(size*.48, size*.58, size*.35, size*.085, 1);
             drawPumpkinLayer(size*.53, size*.48, size*.28, size*.085, 2);
+          } else if (game === 'ghosthunt') {
+            drawGhost(size*.5,size*.48,size*.13);
           } else if (game === 'breakout') {
             for (let r = 0; r < 3; r++) {
               for (let c = 0; c < 5; c++) {
@@ -912,6 +916,66 @@
           roundedRect((s.paddleX-.14)*size, .88*size, .28*size, .028*size, 7, COLORS.cream);
         }
 
+
+        // -------------------- GHOST HUNT --------------------
+        let ghostState = null;
+        function drawGhost(x,y,r) {
+          ctx.fillStyle = COLORS.cream;
+          ctx.beginPath();
+          ctx.arc(x,y-r*.15,r,Math.PI,0);
+          ctx.lineTo(x+r,y+r);
+          ctx.lineTo(x+r*.45,y+r*.65);
+          ctx.lineTo(x,y+r);
+          ctx.lineTo(x-r*.45,y+r*.65);
+          ctx.lineTo(x-r,y+r);
+          ctx.closePath();ctx.fill();
+          roundedRect(x-r*.48,y-r*.35,r*.24,r*.35,2,COLORS.bg);
+          roundedRect(x+r*.24,y-r*.35,r*.24,r*.35,2,COLORS.bg);
+        }
+        function startGhostHunt() {
+          clearGameRuntime(); canvas.hidden=false; running=true;
+          ghostState={score:0,remaining:30,last:performance.now(),target:null,expires:0};
+          currentScore.textContent='0'; spawnGhost();
+          rafId=requestAnimationFrame(ghostLoop);
+        }
+        function spawnGhost() {
+          if (!ghostState) return;
+          ghostState.target={x:.16+Math.random()*.68,y:.18+Math.random()*.60,bad:Math.random()<.22};
+          ghostState.expires=performance.now()+Math.max(470,1050-ghostState.score*5);
+        }
+        function ghostLoop(now) {
+          if (!running || activeGame!=='ghosthunt') return;
+          const s=ghostState;
+          s.remaining-=Math.min(.08,(now-s.last)/1000);s.last=now;
+          if(s.remaining<=0){
+            const improved=updateBest('ghosthunt',s.score);
+            showGameOver({title:improved?'NEW HIGH SCORE':'Час вийшов!',text:`Ти набрав ${s.score} очок.`,mood:improved?'happy':'idle'});
+            return;
+          }
+          if(now>s.expires)spawnGhost();
+          drawGhostHunt();rafId=requestAnimationFrame(ghostLoop);
+        }
+        function drawGhostHunt() {
+          const {size}=fitCanvas(),s=ghostState;drawGrid(size,18);
+          ctx.fillStyle=COLORS.cream;ctx.font=`bold ${size*.045}px monospace`;ctx.textAlign='center';
+          ctx.fillText(`TIME ${Math.ceil(s.remaining)}s`,size*.5,size*.10);
+          const t=s.target;if(!t)return;
+          if(t.bad){drawPumpkin(t.x*size,t.y*size,size*.085);}
+          else drawGhost(t.x*size,t.y*size,size*.085);
+        }
+        function tapGhost(e) {
+          if(activeGame!=='ghosthunt'||!running||!ghostState?.target)return;
+          const rect=canvas.getBoundingClientRect();
+          const x=(e.clientX-rect.left)/rect.width,y=(e.clientY-rect.top)/rect.height;
+          const t=ghostState.target;
+          if(Math.hypot(x-t.x,y-t.y)<.125){
+            ghostState.score=Math.max(0,ghostState.score+(t.bad?-10:10));
+            currentScore.textContent=ghostState.score;
+            beep(t.bad?170:750,.05);
+            spawnGhost();drawGhostHunt();
+          }
+        }
+
         // -------------------- TOUCH / POINTER --------------------
         let gestureStart = null;
 
@@ -933,6 +997,7 @@
           if (activeGame === 'breakout' && breakoutState) {
             breakoutState.paddleX = Math.max(.14, Math.min(.86, x));
           }
+          if (activeGame === 'ghosthunt') tapGhost(e);
           if (activeGame === 'stack' && stackState && running) {
             dropStackCup();
           }
@@ -1042,6 +1107,7 @@
               if (activeGame === 'pong') drawPong();
               if (activeGame === 'stack') drawStack();
               if (activeGame === 'breakout') drawBreakout();
+              if (activeGame === 'ghosthunt') drawGhostHunt();
             } else if (activeGame) {
               drawIdleFrame(activeGame);
             }

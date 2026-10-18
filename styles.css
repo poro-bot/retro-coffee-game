@@ -488,3 +488,10 @@ button *, .game-card * { pointer-events: none; }
 .game-stage { background:#170e26; }
 .game-overlay { background:rgba(16,9,28,.91); }
 @media (hover:none) { .game-card:hover { transform:none; } }
+
+/* iOS Safari: optically center letter-spaced title independent of font metrics */
+.brand-chip { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-width:0; }
+.brand-word { width:100%; text-align:center; text-indent:0; letter-spacing:.12em; padding-left:.12em; line-height:1.1; font-family:Arial,Helvetica,sans-serif; font-weight:900; }
+.season-label { width:100%; text-align:center; }
+button, button *, .brand-chip, .brand-chip *, .game-stage, canvas { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+@media (max-width:420px) { .brand-word { font-size:clamp(26px,7vw,42px); } }
