@@ -63,6 +63,7 @@
       intro: 'Складай гарбузи у високу вежу. Натискай у потрібний момент.',
       hint: 'Тап по полю · або SPACE / ENTER'
     },
+    witchdash: { title: 'Witch Dash', intro: 'Стрибай через надгробки! Тапай по полю, щоб відьмочка підстрибувала.', hint: 'Тап для стрибка · або SPACE / ↑' },
     ghosthunt: { title: 'Ghost Hunt', intro: 'Лови привидів тапами за 30 секунд! Не натискай на гарбузи.', hint: 'Тапай по привидах · 30 секунд' },
     breakout: {
       title: 'Haunted Breakout',
@@ -71,7 +72,7 @@
     }
   };
 
-  const SCORE_GAMES = ['snake', 'catcher', 'pong', 'stack', 'breakout', 'ghosthunt'];
+  const SCORE_GAMES = ['snake', 'catcher', 'pong', 'stack', 'breakout', 'ghosthunt', 'witchdash'];
   let activeGame = null;
   let running = false;
   let rafId = null;
@@ -222,6 +223,7 @@
         if (activeGame === 'stack') startStack();
         if (activeGame === 'breakout') startBreakout();
         if (activeGame === 'ghosthunt') startGhostHunt();
+        if (activeGame === 'witchdash') startWitchDash();
       });
 
         function showGameOver({ kicker = 'GAME OVER', title = 'Ще раз?', text = '', button = 'RETRY', mood = 'sad' } = {}) {
@@ -297,6 +299,9 @@
             drawPumpkinLayer(size*.5, size*.68, size*.42, size*.085, 0);
             drawPumpkinLayer(size*.48, size*.58, size*.35, size*.085, 1);
             drawPumpkinLayer(size*.53, size*.48, size*.28, size*.085, 2);
+          } else if (game === 'witchdash') {
+            drawWitch(size*.28,size*.69,size*.085);
+            drawTombstone(size*.70,size*.73,size*.10);
           } else if (game === 'ghosthunt') {
             drawGhost(size*.5,size*.48,size*.13);
           } else if (game === 'breakout') {
@@ -976,6 +981,62 @@
           }
         }
 
+        // -------------------- WITCH DASH --------------------
+        let witchState = null;
+        function drawWitch(x, y, r) {
+          roundedRect(x-r*.58,y-r*.02,r*1.16,r*.95,r*.15,COLORS.cream);
+          roundedRect(x-r*.30,y+r*.24,r*.15,r*.15,1,COLORS.bg);
+          roundedRect(x+r*.15,y+r*.24,r*.15,r*.15,1,COLORS.bg);
+          ctx.fillStyle=COLORS.accent;
+          ctx.beginPath();ctx.moveTo(x,y-r*1.48);ctx.lineTo(x-r*.67,y-r*.27);ctx.lineTo(x+r*.67,y-r*.27);ctx.closePath();ctx.fill();
+          roundedRect(x-r*.90,y-r*.32,r*1.8,r*.22,1,COLORS.blue);
+        }
+        function drawTombstone(x,y,r) {
+          ctx.fillStyle=COLORS.muted;
+          ctx.beginPath();ctx.moveTo(x-r,y+r);ctx.lineTo(x-r,y-r*.12);
+          ctx.arc(x,y-r*.12,r,Math.PI,0);ctx.lineTo(x+r,y+r);ctx.closePath();ctx.fill();
+          roundedRect(x-r*.14,y-r*.55,r*.28,r*.95,1,COLORS.bg);
+          roundedRect(x-r*.43,y-r*.20,r*.86,r*.20,1,COLORS.bg);
+        }
+        function startWitchDash() {
+          clearGameRuntime();canvas.hidden=false;running=true;
+          witchState={y:0,vy:0,score:0,obstacles:[],spawn:1.25,elapsed:0,last:performance.now(),speed:.40};
+          currentScore.textContent='0';rafId=requestAnimationFrame(witchLoop);
+        }
+        function witchJump() {
+          if(activeGame!=='witchdash'||!running||!witchState)return;
+          if(witchState.y<=.003){witchState.vy=1.04;beep(510,.045);}
+        }
+        function witchLoop(now) {
+          if(!running||activeGame!=='witchdash')return;
+          const s=witchState,dt=Math.min(.04,Math.max(0,(now-s.last)/1000));s.last=now;
+          s.elapsed+=dt;s.vy-=2.85*dt;s.y=Math.max(0,s.y+s.vy*dt);
+          if(s.y===0)s.vy=0;
+          s.speed=Math.min(.75,.40+s.elapsed*.006);
+          s.spawn-=dt;
+          if(s.spawn<=0){s.obstacles.push({x:1.12,passed:false});s.spawn=1.05+Math.random()*.65;}
+          for(const o of s.obstacles){
+            o.x-=s.speed*dt;
+            if(!o.passed&&o.x<.20){o.passed=true;s.score+=10;currentScore.textContent=s.score;beep(690,.025);}
+            if(Math.abs(o.x-.24)<.075&&s.y<.135){
+              const improved=updateBest('witchdash',s.score);
+              drawWitchDash();showGameOver({title:improved?'NEW HIGH SCORE':'Ой, надгробок!',text:`Результат: ${s.score} очок. Спробуй ще!`,mood:improved?'happy':'sad'});
+              return;
+            }
+          }
+          s.obstacles=s.obstacles.filter(o=>o.x>-.2);
+          drawWitchDash();rafId=requestAnimationFrame(witchLoop);
+        }
+        function drawWitchDash(){
+          const {size}=fitCanvas(),s=witchState;drawGrid(size,18);
+          roundedRect(0,size*.81,size,size*.025,0,COLORS.blue);
+          for(let i=0;i<5;i++)roundedRect(((i*.25-s.elapsed*.10)%1.3+1.3)%1.3*size,size*.86,size*.07,size*.014,1,COLORS.accent);
+          drawWitch(size*.24,size*(.735-s.y),size*.062);
+          s.obstacles.forEach(o=>drawTombstone(o.x*size,size*.755,size*.065));
+          ctx.fillStyle=COLORS.cream;ctx.textAlign='center';ctx.font=`bold ${size*.034}px monospace`;
+          ctx.fillText('TAP TO JUMP',size*.5,size*.12);
+        }
+
         // -------------------- TOUCH / POINTER --------------------
         let gestureStart = null;
 
@@ -998,6 +1059,7 @@
             breakoutState.paddleX = Math.max(.14, Math.min(.86, x));
           }
           if (activeGame === 'ghosthunt') tapGhost(e);
+          if (activeGame === 'witchdash') witchJump();
           if (activeGame === 'stack' && stackState && running) {
             dropStackCup();
           }
@@ -1046,7 +1108,7 @@
           // iOS Safari fallback for older WebViews without Pointer Events.
           if (!window.PointerEvent) {
             const touchEvent = (touch) => ({ clientX:touch.clientX, clientY:touch.clientY, pointerId:1, preventDefault(){} });
-            canvas.addEventListener('touchstart', e => { if (e.cancelable) e.preventDefault(); const t=e.changedTouches[0]; if (!t) return; gestureStart={x:t.clientX,y:t.clientY,t:performance.now()}; const r=canvas.getBoundingClientRect(),x=(t.clientX-r.left)/r.width; if(activeGame==='catcher'&&catcherState) catcherState.cupX=Math.max(.13,Math.min(.87,x)); if(activeGame==='pong'&&pongState) pongState.paddleX=Math.max(.14,Math.min(.86,x)); if(activeGame==='breakout'&&breakoutState) breakoutState.paddleX=Math.max(.14,Math.min(.86,x)); if(activeGame==='stack') dropStackCup(); }, {passive:false});
+            canvas.addEventListener('touchstart', e => { if (e.cancelable) e.preventDefault(); const t=e.changedTouches[0]; if (!t) return; gestureStart={x:t.clientX,y:t.clientY,t:performance.now()}; const r=canvas.getBoundingClientRect(),x=(t.clientX-r.left)/r.width; if(activeGame==='catcher'&&catcherState) catcherState.cupX=Math.max(.13,Math.min(.87,x)); if(activeGame==='pong'&&pongState) pongState.paddleX=Math.max(.14,Math.min(.86,x)); if(activeGame==='breakout'&&breakoutState) breakoutState.paddleX=Math.max(.14,Math.min(.86,x)); if(activeGame==='stack') dropStackCup(); if(activeGame==='witchdash') witchJump(); }, {passive:false});
             canvas.addEventListener('touchmove', e => { if(e.cancelable)e.preventDefault(); const t=e.changedTouches[0];if(!t)return;const r=canvas.getBoundingClientRect(),x=(t.clientX-r.left)/r.width;if(activeGame==='catcher'&&catcherState)catcherState.cupX=Math.max(.13,Math.min(.87,x));if(activeGame==='pong'&&pongState)pongState.paddleX=Math.max(.14,Math.min(.86,x));if(activeGame==='breakout'&&breakoutState)breakoutState.paddleX=Math.max(.14,Math.min(.86,x)); }, {passive:false});
             canvas.addEventListener('touchend',e=>{if(e.cancelable)e.preventDefault();const t=e.changedTouches[0];if(t&&gestureStart&&activeGame==='snake'&&running){const dx=t.clientX-gestureStart.x,dy=t.clientY-gestureStart.y;if(Math.max(Math.abs(dx),Math.abs(dy))>18){if(Math.abs(dx)>Math.abs(dy))setSnakeDir(dx>0?1:-1,0);else setSnakeDir(0,dy>0?1:-1);}}gestureStart=null;},{passive:false});
             $$('[data-dir]').forEach(btn=>btn.addEventListener('touchstart',e=>{if(e.cancelable)e.preventDefault();const m={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};setSnakeDir(...m[btn.dataset.dir]);},{passive:false}));
@@ -1080,6 +1142,7 @@
               if (k === 'arrowleft' || k === 'a') breakoutState.move = -1;
               if (k === 'arrowright' || k === 'd') breakoutState.move = 1;
             }
+            if (activeGame === 'witchdash' && (k === ' ' || k === 'arrowup' || k === 'w') && !e.repeat) witchJump();
             if (activeGame === 'stack' && stackState && running && (k === ' ' || k === 'enter')) {
               if (!e.repeat) dropStackCup();
             }
@@ -1108,6 +1171,7 @@
               if (activeGame === 'stack') drawStack();
               if (activeGame === 'breakout') drawBreakout();
               if (activeGame === 'ghosthunt') drawGhostHunt();
+              if (activeGame === 'witchdash') drawWitchDash();
             } else if (activeGame) {
               drawIdleFrame(activeGame);
             }
